@@ -1,0 +1,212 @@
+// Prisma schema file for Arcadia
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for brands and creators
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  type      UserType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Brand-specific fields
+  companyName String?
+  industry    String?
+  website     String?
+
+  // Creator-specific fields
+  walletAddress String?
+  portfolioUrl  String?
+  socialHandle  String?
+
+  // Relations
+  briefs   Brief[]
+  payments Payment[]
+
+  @@map("users")
+}
+
+// Brief model for generated UGC ad briefs
+model Brief {
+  id                String   @id @default(uuid())
+  brandId           String
+  status            BriefStatus @default(DRAFT)
+
+  // Brief content
+  hook              String
+  painPoints        String[] // JSON array
+  benefits          String[] // JSON array
+  callToAction      String
+  creatorNotes      String
+  estimatedDuration String
+  suggestedProps    String[] // JSON array
+  contentStyle      String
+  qualityScore      Int
+
+  // Generation metadata
+  generationCost    Decimal?
+  tokensUsed        Int?
+  temperature       Decimal?
+
+  // Brief details
+  brandInfo         Json // BrandInfo object
+  productDetails    Json // ProductDetails object
+  targetAudience    Json // TargetAudience object
+  campaignGoals     Json // CampaignGoals object
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  brand             User @relation(fields: [brandId], references: [id])
+  variants          BriefVariant[]
+  payments          Payment[]
+
+  @@map("briefs")
+}
+
+// Brief variants for A/B testing
+model BriefVariant {
+  id               String @id @default(uuid())
+  briefId          String
+  variantNumber    Int
+
+  hook             String
+  painPoints       String[]
+  benefits         String[]
+  callToAction     String
+  creatorNotes     String
+  qualityScore     Int
+
+  createdAt        DateTime @default(now())
+
+  // Relations
+  brief            Brief @relation(fields: [briefId], references: [id])
+
+  @@map("brief_variants")
+}
+
+// Payment model for x402 micropayments
+model Payment {
+  id              String        @id @default(uuid())
+  paymentId       String        @unique // x402 payment ID
+  briefId         String?
+  brandId         String
+  creatorId       String?
+
+  amount          Decimal
+  currency        String        @default("ETH")
+  network         String        @default("scroll-zk")
+  status          PaymentStatus @default(PENDING)
+
+  // Transaction details
+  transactionHash String?
+  blockNumber     Int?
+  gasUsed         Int?
+
+  // x402 protocol details
+  paymentUrl      String?
+  expiresAt       DateTime?
+  memo            String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  completedAt     DateTime?
+
+  // Relations
+  brief           Brief?        @relation(fields: [briefId], references: [id])
+  brand           User          @relation(fields: [brandId], references: [id])
+
+  @@map("payments")
+}
+
+// Content model for creator submissions
+model Content {
+  id           String        @id @default(uuid())
+  briefId      String
+  creatorId    String
+
+  // Content details
+  fileUrl      String
+  fileName     String
+  fileSize     Int
+  duration     Int?          // Video duration in seconds
+  status       ContentStatus @default(SUBMITTED)
+
+  // Review details
+  reviewNotes  String?
+  rating       Int?          // 1-5 rating
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  approvedAt   DateTime?
+
+  @@map("content")
+}
+
+// Campaign model for tracking performance
+model Campaign {
+  id               String   @id @default(uuid())
+  briefId          String
+  name             String
+
+  // Performance metrics
+  impressions      Int      @default(0)
+  clicks           Int      @default(0)
+  conversions      Int      @default(0)
+  spend            Decimal  @default(0)
+
+  // Calculated metrics
+  ctr              Decimal? // Click-through rate
+  cpc              Decimal? // Cost per click
+  cpa              Decimal? // Cost per acquisition
+
+  startDate        DateTime?
+  endDate          DateTime?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("campaigns")
+}
+
+// Enums
+enum UserType {
+  BRAND
+  CREATOR
+  ADMIN
+}
+
+enum BriefStatus {
+  DRAFT
+  PUBLISHED
+  IN_REVIEW
+  COMPLETED
+  ARCHIVED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+  REFUNDED
+}
+
+enum ContentStatus {
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  PUBLISHED
+}

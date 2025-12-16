@@ -20,7 +20,7 @@ export function HeroSection() {
           transition={{ delay: 0.2, duration: 0.8 }}
           className="inline-block font-bold tracking-tighter text-4xl md:text-[4rem]"
         >
-          <h1>Ferry your Ad Content with Arcade</h1>
+          <h1>AI-Powered Veo 3.1 Prompt Generator</h1>
         </motion.div>
 
         <motion.p
@@ -29,8 +29,8 @@ export function HeroSection() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.8 }}
         >
-          Arcads helps brands turn ideas into high-converting TikTok ad briefs
-          powered by an agentic workflow and on-chain micropayments.
+          Generate optimized video prompts for Google's Veo 3.1 AI model.
+          Professional video content creation powered by AI and blockchain micropayments.
         </motion.p>
 
         <motion.div
@@ -39,13 +39,13 @@ export function HeroSection() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.8 }}
         >
-          <Link href="#get-started">
+          <Link href="#generator">
             <Button
-              type="submit"
+              type="button"
               size="lg"
               className="px-6 h-11 text-base bg-foreground"
             >
-              Generate my first ad
+              Generate Veo Prompt
               <ArrowRight className="relative z-10 ml-0.5 h-4 w-4 inline-block" />
             </Button>
           </Link>
